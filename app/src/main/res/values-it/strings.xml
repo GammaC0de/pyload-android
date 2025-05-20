@@ -20,7 +20,7 @@
   <string name="ip">Indirizzo</string>
   <string name="ip_desc">IP o nome host del Core pyLoad remoto.</string>
   <string name="port">Porta</string>
-  <string name="port_desc">La porta del ThriftBackend che hai impostato nella sezione remoto.</string>
+  <string name="port_desc">La porta del PyloadBackend che hai impostato nella sezione remoto.</string>
   <string name="username">Nome utente</string>
   <string name="username_desc">Il nome utente che usi per il login.</string>
   <string name="password">Password</string>

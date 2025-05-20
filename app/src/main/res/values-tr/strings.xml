@@ -20,7 +20,7 @@
   <string name="ip">Adres</string>
   <string name="ip_desc">pyLoad Core için IP yada ana bilgisayar adı.</string>
   <string name="port">Port</string>
-  <string name="port_desc">uzak bölümünde ayarlanan ThriftBackend portu.</string>
+  <string name="port_desc">uzak bölümünde ayarlanan PyloadBackend portu.</string>
   <string name="username">Kullanıcı Adı</string>
   <string name="username_desc">Giriş için kullanmış olduğunuz kullanıcı adı.</string>
   <string name="password">Şifre</string>

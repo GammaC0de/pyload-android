@@ -20,7 +20,7 @@
   <string name="ip">عنوان</string>
   <string name="ip_desc">عنوان IP او اسم المضيف لمصدر باي لود البعيد.</string>
   <string name="port">المنفذ</string>
-  <string name="port_desc">المنفذ لThriftBackend اللذي وضعتة في الجزء البعيد.</string>
+  <string name="port_desc">المنفذ لPyloadBackend اللذي وضعتة في الجزء البعيد.</string>
   <string name="username">اسم المستخدم</string>
   <string name="username_desc">اسم المستخدم الذي استخدمتة لتسجيل الدخول.</string>
   <string name="password">كلمة المرور</string>

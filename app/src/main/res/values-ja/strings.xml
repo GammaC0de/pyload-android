@@ -20,7 +20,7 @@
   <string name="ip">アドレス</string>
   <string name="ip_desc">リモート pyLoad コアのIp アドレスまたはホスト名。</string>
   <string name="port">ポート</string>
-  <string name="port_desc">リモートのセクションで設定した ThriftBackend のポート。</string>
+  <string name="port_desc">リモートのセクションで設定した PyloadBackend のポート。</string>
   <string name="username">ユーザー名</string>
   <string name="username_desc">あなたのユーザー名を使用してログインします。</string>
   <string name="password">パスワード</string>

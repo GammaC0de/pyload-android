@@ -20,7 +20,7 @@
   <string name="ip">Adres</string>
   <string name="ip_desc">IP of hostname van de externe pyLoad Core.</string>
   <string name="port">Poort</string>
-  <string name="port_desc">De poort waarop je de ThriftBackend hebt ingesteld bij de externe verbindingen.</string>
+  <string name="port_desc">De poort waarop je de PyloadBackend hebt ingesteld bij de externe verbindingen.</string>
   <string name="username">Gebruikersnaam</string>
   <string name="username_desc">Gebruiksnaam voor het inloggen.</string>
   <string name="password">Wachtwoord</string>

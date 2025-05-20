@@ -20,7 +20,7 @@
   <string name="ip">Adres</string>
   <string name="ip_desc">Adres IP lub nazwa hosta zdalnego pyLoad Core.</string>
   <string name="port">Port</string>
-  <string name="port_desc">Port ThriftBackend można ustawić w sekcji zdalnego dostępu.</string>
+  <string name="port_desc">Port PyloadBackend można ustawić w sekcji zdalnego dostępu.</string>
   <string name="username">Nazwa użytkownika</string>
   <string name="username_desc">Twoja nazwa użytkownika.</string>
   <string name="password">Hasło</string>

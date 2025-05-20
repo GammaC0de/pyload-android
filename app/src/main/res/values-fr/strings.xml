@@ -20,7 +20,7 @@
   <string name="ip">Adresse</string>
   <string name="ip_desc">IP ou nom de l\'hôte de l\'accès à distance du centre pyLoad.</string>
   <string name="port">Port</string>
-  <string name="port_desc">Le port du ThriftBackend que vous avez spécifié dans la connexion à distance.</string>
+  <string name="port_desc">Le port du PyloadBackend que vous avez spécifié dans la connexion à distance.</string>
   <string name="username">Nom utilisateur</string>
   <string name="username_desc">Le nom d\'utilisateur que vous utilisez pour vous connecter.</string>
   <string name="password">Mot de passe</string>

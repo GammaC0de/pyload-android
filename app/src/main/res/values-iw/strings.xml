@@ -19,7 +19,7 @@
     <string name="ip">כתובת</string>
     <string name="ip_desc">IP או hostname של שרת pyLoad המרוחק.</string>
     <string name="port">פורט</string>
-    <string name="port_desc">הפורט של ה- ThriftBackend שקבעת בהגדרות מרוחקות.</string>
+    <string name="port_desc">הפורט של ה- PyloadBackend שקבעת בהגדרות מרוחקות.</string>
     <string name="username">שם משתמש</string>
     <string name="username_desc">שם המשתמש שבו אתה משתמש כדי להתחבר.</string>
     <string name="password">סיסמה</string>

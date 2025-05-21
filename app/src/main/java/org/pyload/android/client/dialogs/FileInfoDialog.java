@@ -1,8 +1,9 @@
 package org.pyload.android.client.dialogs;
 
 import org.pyload.android.client.R;
-import org.pyload.thrift.FileData;
-import org.pyload.thrift.PackageData;
+import org.pyload.android.client.module.Utils;
+import org.pyload.android.openapi.models.FileData;
+import org.pyload.android.openapi.models.PackageData;
 
 import android.app.Dialog;
 import android.os.Bundle;
@@ -24,8 +25,8 @@ public class FileInfoDialog extends DialogFragment {
 		FileInfoDialog dialog = new FileInfoDialog();
 		Bundle args = new Bundle();
 
-		args.putSerializable("pack", pack);
-		args.putSerializable("file", file);
+		args.putString("pack", Utils.encodeObject(pack));
+		args.putString("file", Utils.encodeObject(file));
 		
 		dialog.setArguments(args);
 		return dialog;
@@ -34,8 +35,8 @@ public class FileInfoDialog extends DialogFragment {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		pack = (PackageData) getArguments().getSerializable("pack");
-		file  = (FileData) getArguments().getSerializable("file");
+		pack = Utils.decodeObject(getArguments().getString("pack"), PackageData.class);
+		file = Utils.decodeObject(getArguments().getString("file"), FileData.class);
 	}
 	
 	@Override
@@ -44,25 +45,25 @@ public class FileInfoDialog extends DialogFragment {
 		View dialog = inflater.inflate(R.layout.fileinfo_dialog, container, false);
 		
 		TextView view = (TextView) dialog.findViewById(R.id.name);
-		view.setText(file.name);
+		view.setText(file.getName());
 
 		view = (TextView) dialog.findViewById(R.id.status);
-		view.setText(file.statusmsg);
+		view.setText(file.getStatusmsg());
 
 		view = (TextView) dialog.findViewById(R.id.plugin);
-		view.setText(file.plugin);
+		view.setText(file.getPlugin());
 
 		view = (TextView) dialog.findViewById(R.id.size);
-		view.setText(file.format_size);
+		view.setText(file.getFormatSize());
 
 		view = (TextView) dialog.findViewById(R.id.error);
-		view.setText(file.error);
+		view.setText(file.getError());
 
 		view = (TextView) dialog.findViewById(R.id.packageValue);
-		view.setText(pack.name);
+		view.setText(pack.getName());
 
 		view = (TextView) dialog.findViewById(R.id.folder);
-		view.setText(pack.folder);
+		view.setText(pack.getFolder());
 		
 		Button button = (Button) dialog.findViewById(R.id.close);
 		button.setOnClickListener(new OnClickListener() {

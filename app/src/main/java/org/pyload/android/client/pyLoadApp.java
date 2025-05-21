@@ -15,36 +15,33 @@ import android.view.View;
 import android.widget.Toast;
 import androidx.fragment.app.Fragment;
 import org.apache.http.conn.ssl.BrowserCompatHostnameVerifier;
-import org.apache.http.conn.ssl.X509HostnameVerifier;
-import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TBinaryProtocol;
-import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.transport.TSSLTransportFactory;
-import org.apache.thrift.transport.TSocket;
-import org.apache.thrift.transport.TTransport;
-import org.apache.thrift.transport.TTransportException;
 import org.pyload.android.client.components.TabHandler;
 import org.pyload.android.client.exceptions.WrongLogin;
 import org.pyload.android.client.exceptions.WrongServer;
 import org.pyload.android.client.module.AllTrustManager;
 import org.pyload.android.client.module.GuiTask;
 import org.pyload.android.client.module.TaskQueue;
-import org.pyload.thrift.Pyload.Client;
+import org.pyload.android.openapi.ApiClient;
+import org.pyload.android.openapi.api.PyLoadAuthenticationApi;
+import org.pyload.android.openapi.api.PyLoadRestApi;
+import org.pyload.android.openapi.auth.ApiKeyAuth;
 
 import javax.net.ssl.*;
-import java.io.IOException;
+
 import java.net.ConnectException;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.security.KeyManagementException;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
+import java.security.SecureRandom;
+import java.util.concurrent.TimeUnit;
+
+import retrofit2.Call;
+import retrofit2.Response;
+import retrofit2.Retrofit;
 
 public class pyLoadApp extends Application {
 
-	private Client client;
+	private PyLoadRestApi client;
 
 	// setted by main activity
 	private TaskQueue taskQueue;
@@ -56,18 +53,12 @@ public class pyLoadApp extends Application {
 	
 	private boolean captchaNotificationShown;
 
-	private static final String[] clientVersion = {"0.4.8", "0.4.9", "0.4.20"};
+	private static final String[] clientVersion = {"0.5"};
 
 	public void init(pyLoad main) {
 		this.main = main;
 
-		HashMap<Throwable, Runnable> map = new HashMap<Throwable, Runnable>();
-		map.put(new TException(), handleException);
-		map.put(new WrongLogin(), handleException);
-		map.put(new TTransportException(), handleException);
-		map.put(new WrongServer(), handleException);
-
-        taskQueue = new TaskQueue(this, new Handler(), map);
+        taskQueue = new TaskQueue(this, new Handler());
 		startTaskQueue();
 	}
 
@@ -78,79 +69,90 @@ public class pyLoadApp extends Application {
 			return getString(R.string.off);
 	}
 
-	private boolean login() throws TException {
-
+	private boolean login() {
 		// replace protocol, some user also enter it
 		String host = prefs.getString("host", "10.0.2.2").replaceFirst("^[a-zA-z]+://", "");
-		int port = Integer.parseInt(prefs.getString("port", "7227"));
+		int port = Integer.parseInt(prefs.getString("port", "8000"));
 		String username = prefs.getString("username", "User");
 		String password = prefs.getString("password", "pwhere");
 
-		// TODO: better exception handling
-		TTransport trans;
-		try {
-			if (prefs.getBoolean("ssl", false)) {
-				SSLContext ctx;
-				TrustManager[] trustManagers;
-				try {
-					if (prefs.getBoolean("ssl_validate", true)) {
-						TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-						tmf.init((KeyStore) null);
-						trustManagers = tmf.getTrustManagers();
-					} else {
-						trustManagers = new TrustManager[1];
-						trustManagers[0] = new AllTrustManager();
-					}
-					ctx = SSLContext.getInstance("TLS");
-					ctx.init(null, trustManagers, null);
-					Log.d("pyLoad", "SSL Context created");
-				} catch (NoSuchAlgorithmException e) {
-					throw new TException(e);
-				} catch (KeyStoreException e) {
-					throw new TException(e);
-				} catch (KeyManagementException e) {
-					throw new TException(e);
+        ApiClient apiClient = new ApiClient();
+		apiClient.getOkBuilder()
+				.connectTimeout(8, TimeUnit.SECONDS)
+				.readTimeout(8, TimeUnit.SECONDS);
+
+		boolean useSsl = prefs.getBoolean("ssl", false);
+		if (useSsl) {
+			boolean validateSsl = prefs.getBoolean("ssl_validate", true);
+			TrustManager[] trustManagers;
+			try {
+				if (validateSsl) {
+					TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+					tmf.init((KeyStore) null);
+					trustManagers = tmf.getTrustManagers();
+				} else {
+					trustManagers = new TrustManager[1];
+					trustManagers[0] = new AllTrustManager();
 				}
-				// timeout 8000ms
-				trans = TSSLTransportFactory.createClient(ctx.getSocketFactory(), host, port, 8000);
-				if (prefs.getBoolean("ssl_validate", true)) {
-					X509HostnameVerifier verifier = new BrowserCompatHostnameVerifier();
-					try {
-						verifier.verify(host, (SSLSocket) ((TSocket) trans).getSocket());
-					} catch (IOException e) {
-						throw new TException(e);
-					}
-					// TODO: check OCSP/CRL
-				}
-			} else {
-				trans = new TSocket(host, port, 8000);
-				trans.open();
+				SSLContext sslContext = SSLContext.getInstance("TLS");
+				sslContext.init(null, trustManagers, new SecureRandom());
+				Log.d("pyLoad", "SSL Context created");
+
+				apiClient.getOkBuilder().sslSocketFactory(sslContext.getSocketFactory(), (X509TrustManager) trustManagers[0]);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
 			}
-		} catch (TTransportException e) {
-			throw new TException(e);
+
+			if (validateSsl) {
+				apiClient.getOkBuilder().hostnameVerifier(new BrowserCompatHostnameVerifier());
+			} else {
+				apiClient.getOkBuilder().hostnameVerifier((hostname, session) -> true);
+			}
 		}
 
-		TProtocol iprot = new TBinaryProtocol(trans);
+		String protocol = useSsl ? "https://" : "http://";
+		String baseUrl = protocol + host + ":" + port + "/";
 
-		client = new Client(iprot);
-		return client.login(username, password);
+		apiClient.createDefaultAdapter();
+		Retrofit.Builder retrofit = apiClient.getAdapterBuilder().baseUrl(baseUrl);
+		retrofit.converterFactories().remove(0);
+		apiClient.setAdapterBuilder(retrofit);
+
+		PyLoadAuthenticationApi authenticationApi = apiClient.createService(PyLoadAuthenticationApi.class);
+		boolean loginSuccessful;
+        try {
+			Response<Void> loginResponse = authenticationApi.apiLoginPost(username, password).execute();
+            loginSuccessful = loginResponse.isSuccessful();
+			if (loginSuccessful) {
+				String sessionCookie = loginResponse.headers().get("Set-Cookie");
+				String[] sessionCookieKeyValue = sessionCookie.split(";", 2)[0].split("=", 2);
+
+				apiClient.addAuthorization("cookieAuth", new ApiKeyAuth("cookie", sessionCookieKeyValue[0]));
+				apiClient.setApiKey(sessionCookieKeyValue[1]);
+				client = apiClient.createService(PyLoadRestApi.class);
+			}
+        } catch (Exception e) {
+			throw new RuntimeException(e);
+        }
+
+		return loginSuccessful;
 	}
 
-	public Client getClient() throws TException, WrongLogin {
+	public PyLoadRestApi getClient() throws WrongLogin, WrongServer {
 
 		if (client == null) {
 			Log.d("pyLoad", "Creating new Client");
-			boolean loggedin = login();
-			if (!loggedin) {
+			boolean loggedIn = login();
+			if (!loggedIn) {
 				client = null;
 				throw new WrongLogin();
 			}
 
-			String server = client.getServerVersion();
-			boolean match = false;
+            String server = executeNetworkCall(client.apiGetServerVersionGet());
+            boolean match = false;
 			
 			for (String version : clientVersion)
-				if (server.equals(version)) {
+				if (server.startsWith(version)) {
 					match = true;
 					break;
 				}
@@ -162,7 +164,26 @@ public class pyLoadApp extends Application {
 		return client;
 	}
 
+	public <T> T executeNetworkCall(Call<T> call) throws RuntimeException {
+		Response<T> response;
+		try {
+			response = call.execute();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+
+		if (response.isSuccessful()) {
+			return response.body();
+		} else {
+			String errorMsg = "HTTP error: " + response.code() + " - " + response.message();
+			throw new RuntimeException(errorMsg);
+		}
+	}
+
 	public void addTask(GuiTask task) {
+		if (!task.hasCritical()) {
+			task.setCritical(handleException);
+		}
 		taskQueue.addTask(task);
 	}
 
@@ -181,54 +202,31 @@ public class pyLoadApp extends Application {
 		client = null;
         // The task queue will log an error with exception
 
-		if (lastException instanceof TTransportException) {
-			Toast t = Toast.makeText(this, R.string.lost_connection,
-					Toast.LENGTH_SHORT);
-			t.show();
-		} else if (lastException instanceof WrongLogin) {
-			Toast t = Toast.makeText(this, R.string.bad_login,
-					Toast.LENGTH_SHORT);
-			t.show();
-		} else if (lastException instanceof TException) {
-            Throwable tr = findException(lastException);
+		String errorMessage;
+		if (lastException instanceof WrongLogin)
+			errorMessage = getString(R.string.bad_login);
+		else if (lastException instanceof WrongServer)
+			errorMessage = String.format(getString(R.string.old_server), clientVersion[clientVersion.length - 1]);
+		else {
+			Throwable exception = lastException.getCause();
 
-            Toast t;
-            if (tr instanceof SSLHandshakeException)
-                t = Toast.makeText(this, R.string.certificate_error, Toast.LENGTH_SHORT);
-            else if(tr instanceof SocketTimeoutException)
-                t = Toast.makeText(this, R.string.connect_timeout, Toast.LENGTH_SHORT);
-            else if(tr instanceof ConnectException)
-                t = Toast.makeText(this, R.string.connect_error, Toast.LENGTH_SHORT);
-            else if(tr instanceof SocketException)
-                t = Toast.makeText(this, R.string.socket_error, Toast.LENGTH_SHORT);
-            else
-                t = Toast.makeText(this, getString(R.string.no_connection)+ " " + tr.getMessage(), Toast.LENGTH_SHORT);
-
-			t.show();
-		} else if (lastException instanceof WrongServer) {
-			Toast t = Toast.makeText(this, String.format(
-					getString(R.string.old_server), clientVersion[clientVersion.length-1]),
-					Toast.LENGTH_SHORT);
-			t.show();
+			if (exception instanceof SSLHandshakeException)
+				errorMessage = getString(R.string.certificate_error);
+			else if (exception instanceof SocketTimeoutException)
+				errorMessage = getString(R.string.connect_timeout);
+			else if (exception instanceof ConnectException)
+				errorMessage = getString(R.string.connect_error);
+			else if (exception instanceof SocketException)
+				errorMessage = getString(R.string.socket_error);
+			else
+				errorMessage = getString(R.string.no_connection) + " " + lastException.getMessage();
 		}
+
+		Toast t = Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT);
+		t.show();
 
 		setProgress(false);
 	}
-
-    /**
-     * Retrieves first root exception on stack of several TExceptions.
-     * @return the first exception not a TException or the last TException
-     */
-    private Throwable findException(Throwable e) {
-        // will not terminate when cycles occur, hopefully nobody cycle exception causes
-        while (e instanceof TException) {
-           if (e.getCause() == null) break;
-           if (e.getCause() == e) break; // just to avoid loop
-           e = e.getCause();
-        }
-
-        return e;
-    }
 
 	final public Runnable handleSuccess = new Runnable() {
 		@Override

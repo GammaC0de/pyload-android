@@ -10,11 +10,12 @@ import org.pyload.android.client.pyLoadApp;
 import org.pyload.android.client.components.TabHandler;
 import org.pyload.android.client.dialogs.CaptchaDialog;
 import org.pyload.android.client.module.GuiTask;
-import org.pyload.thrift.CaptchaTask;
-import org.pyload.thrift.DownloadInfo;
-import org.pyload.thrift.DownloadStatus;
-import org.pyload.thrift.Pyload.Client;
-import org.pyload.thrift.ServerStatus;
+import org.pyload.android.openapi.api.PyLoadRestApi;
+import org.pyload.android.openapi.models.ApiStopDownloadsPostRequest;
+import org.pyload.android.openapi.models.CaptchaTask;
+import org.pyload.android.openapi.models.DownloadInfo;
+import org.pyload.android.openapi.models.DownloadStatus;
+import org.pyload.android.openapi.models.ServerStatus;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -44,10 +45,8 @@ import android.widget.TextView;
 public class OverviewFragment extends ListFragment implements
 		OnDismissListener, TabHandler {
 
-	public final static int CAPTCHA_DIALOG = 0;
-
 	private pyLoadApp app;
-	private Client client;
+	private PyLoadRestApi client;
 	private OverviewAdapter adp;
 
 	private List<DownloadInfo> downloads;
@@ -79,12 +78,12 @@ public class OverviewFragment extends ListFragment implements
 
 		public void run() {
 			client = app.getClient();
-			downloads = client.statusDownloads();
-			status = client.statusServer();
-			if (client.isCaptchaWaiting()) {
+			downloads = app.executeNetworkCall(client.apiStatusDownloadsGet());
+			status = app.executeNetworkCall(client.apiStatusServerGet());
+			if (app.executeNetworkCall(client.apiIsCaptchaWaitingGet())) {
 				Log.d("pyLoad", "Captcha available");
-				captcha = client.getCaptchaTask(false);
-				Log.d("pyload", captcha.resultType);
+				captcha = app.executeNetworkCall(client.apiGetCaptchaTaskPost(false));
+				Log.d("pyload", captcha.getResultType());
 				showNotification();
 			}
 			else
@@ -134,9 +133,9 @@ public class OverviewFragment extends ListFragment implements
             public void onClick(View v) {
                 app.addTask(new GuiTask(new Runnable() {
      				public void run() {
-     					Client client = app.getClient();
-     					client.togglePause();
-     				}
+						PyLoadRestApi client = app.getClient();
+						app.executeNetworkCall(client.apiTogglePauseGet());
+                    }
      			}, app.handleSuccess));
             }
         });
@@ -146,8 +145,8 @@ public class OverviewFragment extends ListFragment implements
             public void onClick(View v) {
                 app.addTask(new GuiTask(new Runnable() {
                     public void run() {
-                        Client client = app.getClient();
-                        client.toggleReconnect();
+                        PyLoadRestApi client = app.getClient();
+						app.executeNetworkCall(client.apiToggleReconnectGet());
                     }
                 }, app.handleSuccess));
             }
@@ -199,9 +198,10 @@ public class OverviewFragment extends ListFragment implements
 				public void run() {
 					client = app.getClient();
 					ArrayList<Integer> fids = new ArrayList<Integer>();
-					fids.add(info.fid);
-					client.stopDownloads(fids);
-				}
+					fids.add(info.getFid());
+					ApiStopDownloadsPostRequest request = new ApiStopDownloadsPostRequest().fileIds(fids);
+					app.executeNetworkCall(client.apiStopDownloadsPost(request));
+                }
 			}, new Runnable() {
 
 				public void run() {
@@ -255,15 +255,15 @@ public class OverviewFragment extends ListFragment implements
 
 		adapter.setDownloads(downloads);
 
-		statusServer.setText(app.verboseBool(status.download));
-		reconnect.setText(app.verboseBool(status.reconnect));
-		speed.setText(Utils.formatSize(status.speed) + "/s");
-		active.setText(String.format("%d / %d", status.active, status.total));
+		statusServer.setText(app.verboseBool(status.getDownload()));
+		reconnect.setText(app.verboseBool(status.getReconnect()));
+		speed.setText(Utils.formatSize(status.getSpeed()) + "/s");
+		active.setText(String.format("%d / %d", status.getActive(), status.getTotal()));
 
 		if (captcha != null && app.prefs.getBoolean("pull_captcha", true)
-				&& captcha.resultType != null // string null bug
-				&& captcha.resultType.equals("textual")
-				&& lastCaptcha != captcha.tid) {
+				&& captcha.getResultType() != null // string null bug
+				&& captcha.getResultType().equals("textual")
+				&& lastCaptcha != captcha.getTid()) {
 			showDialog();
 		}
 
@@ -285,7 +285,7 @@ public class OverviewFragment extends ListFragment implements
 			return;
 
 		CaptchaDialog dialog = CaptchaDialog.newInstance(captcha);
-		lastCaptcha = captcha.tid;
+		lastCaptcha = captcha.getTid();
 
 		Log.d("pyLoad", "Got Captcha Task");
 
@@ -412,34 +412,34 @@ class OverviewAdapter extends BaseAdapter {
 		
 		
 		// name is null sometimes somehow
-		if (info.name != null && !info.name.equals(holder.name.getText())) {
-			holder.name.setText(info.name);
+		if (info.getName() != null && !info.getName().equals(holder.name.getText())) {
+			holder.name.setText(info.getName());
 		}
 
-		holder.progress.setProgress(info.percent);
+		holder.progress.setProgress(info.getPercent());
 
-		if (info.status == DownloadStatus.Downloading) {
-			holder.size.setText(Utils.formatSize(info.size));
-			holder.percent.setText(info.percent + "%");
-			holder.size_done.setText(Utils.formatSize(info.size - info.bleft));
+		if (info.getStatus() == DownloadStatus.DOWNLOADING) {
+			holder.size.setText(Utils.formatSize(info.getSize()));
+			holder.percent.setText(info.getPercent() + "%");
+			holder.size_done.setText(Utils.formatSize(info.getSize() - info.getBleft()));
 
-			holder.speed.setText(Utils.formatSize(info.speed) + "/s");
-			holder.eta.setText(info.format_eta);
+			holder.speed.setText(Utils.formatSize(Math.round(info.getSpeed())) + "/s");
+			holder.eta.setText(info.getFormatEta());
 
-		} else if (info.status == DownloadStatus.Waiting) {
+		} else if (info.getStatus() == DownloadStatus.WAITING) {
 			holder.size.setText(R.string.lambda);
 			holder.percent.setText(R.string.lambda);
 			holder.size_done.setText(R.string.lambda);
 
-			holder.speed.setText(info.statusmsg);
-			holder.eta.setText(info.format_wait);
+			holder.speed.setText(info.getStatusmsg());
+			holder.eta.setText(info.getFormatWait());
 
 		} else {
 			holder.size.setText(R.string.lambda);
 			holder.percent.setText(R.string.lambda);
 			holder.size_done.setText(R.string.lambda);
 
-			holder.speed.setText(info.statusmsg);
+			holder.speed.setText(info.getStatusmsg());
 			holder.eta.setText(R.string.lambda);
 		}
 

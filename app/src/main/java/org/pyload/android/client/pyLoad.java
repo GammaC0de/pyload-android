@@ -1,8 +1,8 @@
 package org.pyload.android.client;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.nio.ByteBuffer;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
@@ -18,9 +18,10 @@ import org.pyload.android.client.fragments.OverviewFragment;
 import org.pyload.android.client.fragments.QueueFragment;
 import org.pyload.android.client.module.Eula;
 import org.pyload.android.client.module.GuiTask;
-import org.pyload.thrift.Destination;
-import org.pyload.thrift.PackageDoesNotExists;
-import org.pyload.thrift.Pyload.Client;
+import org.pyload.android.openapi.api.PyLoadRestApi;
+import org.pyload.android.openapi.models.ApiAddPackagePostRequest;
+import org.pyload.android.openapi.models.ApiSetPackageDataPostRequest;
+import org.pyload.android.openapi.models.Destination;
 
 import android.content.Context;
 import android.content.Intent;
@@ -32,6 +33,9 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.TabHost;
 import androidx.core.view.MenuItemCompat;
+
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 
 public class pyLoad extends FragmentTabsPager
 {
@@ -203,8 +207,8 @@ public class pyLoad extends FragmentTabsPager
 			{
                 public void run()
 				{
-                    Client client = app.getClient();
-                    client.restartFailed();
+                    PyLoadRestApi client = app.getClient();
+					app.executeNetworkCall(client.apiRestartFailedGet());
                 }
             }, app.handleSuccess));
 
@@ -231,11 +235,12 @@ public class pyLoad extends FragmentTabsPager
 				final Destination dest;
 				final String filepath = data.getStringExtra("filepath");
 				final String filename = data.getStringExtra("filename");
+				final Uri filepathUri = Uri.parse(filepath);
 
 				if (data.getIntExtra("dest", 0) == 0)
-					dest = Destination.Queue;
+					dest = Destination.QUEUE;
 				else
-					dest = Destination.Collector;
+					dest = Destination.COLLECTOR;
 
 				final ArrayList<String> links = new ArrayList<String>();
 				for (String link_row : link_array)
@@ -250,51 +255,52 @@ public class pyLoad extends FragmentTabsPager
 
 					public void run()
 					{
-						Client client = app.getClient();
+						PyLoadRestApi client = app.getClient();
 
 						if (links.size() > 0)
 						{
-							int pid = client.addPackage(name, links, dest);
+							ApiAddPackagePostRequest addPackageRequest = new ApiAddPackagePostRequest()
+									.name(name)
+									.links(links)
+									.dest(dest);
+							int pid = app.executeNetworkCall(client.apiAddPackagePost(addPackageRequest));
 
-							if (password != null && !password.equals(""))
+                            if (password != null && !password.equals(""))
 							{
-
-								HashMap<String, String> opts = new HashMap<String, String>();
+								HashMap<String, Object> opts = new HashMap<>();
 								opts.put("password", password);
 
-								try
-								{
-									client.setPackageData(pid, opts);
-								}
-								catch (PackageDoesNotExists e)
-								{
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								}
+								ApiSetPackageDataPostRequest setPackageDataRequest = new ApiSetPackageDataPostRequest()
+										.packageId(pid)
+										.data(opts);
+								app.executeNetworkCall(client.apiSetPackageDataPost(setPackageDataRequest));
 							}
 						}
-						if (filename != null && !filepath.equals(""))
+						if (!filepath.equals(""))
 						{
-
-							File file = new File(filepath);
-							try
+							try(InputStream inputStream = getContentResolver().openInputStream(filepathUri);
+								ByteArrayOutputStream outputStream = new ByteArrayOutputStream())
 							{
-								if (file.length() > (1 << 20))
-									throw new Exception("File size to large");
-								FileInputStream is = new FileInputStream(file);
-								ByteBuffer buffer = ByteBuffer
-										.allocate((int) file.length());
+								byte[] buffer = new byte[1024];
+								int length;
+								while ((length = inputStream.read(buffer)) != -1) {
+									outputStream.write(buffer, 0, length);
+								}
 
-								while (is.getChannel().read(buffer) > 0);
+								byte[] fileBytes = outputStream.toByteArray();
 
-								buffer.rewind();
-								is.close();
-								client.uploadContainer(filename, buffer);
+								if (fileBytes.length > 1048576) { // 1 MB
+									throw new IOException("File size too large");
+								}
 
+								RequestBody body = RequestBody.create(null, fileBytes);
+								MultipartBody.Part multipartBody = MultipartBody.Part.createFormData("data", filename, body);
+								client.apiUploadContainerPost(filename, multipartBody).execute();
 							}
-							catch (Throwable e)
+							catch (IOException e)
 							{
 								Log.e("pyLoad", "Error when uploading file", e);
+								throw new RuntimeException(e);
 							}
 						}
 
@@ -339,17 +345,16 @@ public class pyLoad extends FragmentTabsPager
                 getResources().getDisplayMetrics());
     }
 
-	public void setCaptchaResult(final short tid, final String result)
+	public void setCaptchaResult(final int tid, final String result)
 	{
 		app.addTask(new GuiTask(new Runnable()
 		{
 
 			public void run()
 			{
-				Client client = app.getClient();
+				PyLoadRestApi client = app.getClient();
 				Log.d("pyLoad", "Send Captcha result: " + tid + " " + result);
-				client.setCaptchaResult(tid, result);
-
+				app.executeNetworkCall(client.apiSetCaptchaResultPost(tid, result));
 			}
 		}));
 

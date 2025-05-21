@@ -4,11 +4,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.pyload.android.client.R;
+import org.pyload.android.client.module.Utils;
 import org.pyload.android.client.pyLoadApp;
 import org.pyload.android.client.module.GuiTask;
-import org.pyload.thrift.ConfigItem;
-import org.pyload.thrift.ConfigSection;
-import org.pyload.thrift.Pyload.Client;
+import org.pyload.android.openapi.api.PyLoadRestApi;
+import org.pyload.android.openapi.models.ApiSetConfigValuePostRequest;
+import org.pyload.android.openapi.models.ConfigItem;
+import org.pyload.android.openapi.models.ConfigSection;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -51,7 +53,7 @@ public class ConfigSectionFragment extends Fragment {
 		View view = inflater.inflate(R.layout.config_section, null, false);
 		createLayout(view);
 		TextView t = (TextView) view.findViewById(R.id.list_header_title);
-		t.setText(section.description);
+		t.setText(section.getDescription());
 
 		view.findViewById(R.id.button_submit)
 				.setOnClickListener(new OnClickListener() {
@@ -80,7 +82,7 @@ public class ConfigSectionFragment extends Fragment {
 
 		Bundle extras = getArguments();
 
-		section = (ConfigSection) extras.getSerializable("section");
+		section = Utils.decodeObject(extras.getString("section"), ConfigSection.class);
 		type = extras.getString("type");
 	}
 
@@ -88,9 +90,9 @@ public class ConfigSectionFragment extends Fragment {
 		LinearLayout ll = (LinearLayout) view.findViewById(R.id.layout_root);
 		ll.setOrientation(LinearLayout.VERTICAL);
 
-		for (ConfigItem item : section.items) {
+		for (ConfigItem item : section.getItems()) {
 			ConfigItemView c = new ConfigItemView(this.getActivity(), item);
-			items.put(item.name, c);
+			items.put(item.getName(), c);
 			ll.addView(c);
 		}
 
@@ -107,19 +109,24 @@ public class ConfigSectionFragment extends Fragment {
 			@Override
 			public void run() {
 
-				Client client = app.getClient();
+				PyLoadRestApi client = app.getClient();
 
-				for (ConfigItem item : section.items) {
-					ConfigItemView view = items.get(item.name);
+				for (ConfigItem item : section.getItems()) {
+					ConfigItemView view = items.get(item.getName());
 					String newValue = view.getValue();
-					if (!item.value.equals(newValue)) {
+					if (!item.getValue().equals(newValue)) {
 						Log.d("pyLoad", String.format(
 								"Set config value: %s, %s, %s", type,
-								section.name, item.name));
+								section.getName(), item.getName()));
 
-						client.setConfigValue(section.name, item.name,
-								newValue, type);
-					}
+						ApiSetConfigValuePostRequest request = new ApiSetConfigValuePostRequest()
+								.category(section.getName())
+								.option(item.getName())
+								.value(newValue)
+								.section(type);
+
+						app.executeNetworkCall(client.apiSetConfigValuePost(request));
+                    }
 				}
 
 				getFragmentManager().popBackStack();
@@ -147,41 +154,41 @@ class ConfigItemView extends LinearLayout {
 
 		setOrientation(LinearLayout.VERTICAL);
 
-		if (!item.type.equals("bool")) {
+		if (!item.getType().equals("bool")) {
 			TextView tv = new TextView(context);
-			tv.setText(item.description);
+			tv.setText(item.getDescription());
 			tv.setTextColor(Color.WHITE);
 			tv.setTextSize(16);
 			tv.setPadding(2, 0, 0, 0);
 			addView(tv);
 		}
 
-		if (item.type.equals("int")) {
+		if (item.getType().equals("int")) {
 			EditText et = new EditText(context);
 			et.setInputType(InputType.TYPE_CLASS_NUMBER);
-			et.setText(item.value);
+			et.setText(item.getValue());
 			v = et;
-		} else if (item.type.equals("password")) {
+		} else if (item.getType().equals("password")) {
 			EditText et = new EditText(context);
 			et.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
 			et.setTransformationMethod(PasswordTransformationMethod
 					.getInstance());
-			et.setText(item.value);
+			et.setText(item.getValue());
 			v = et;
-		} else if (item.type.equals("bool")) {
+		} else if (item.getType().equals("bool")) {
 			CheckBox cb = new CheckBox(context);
-			cb.setText(item.description);
+			cb.setText(item.getDescription());
 
-			if (item.value.equals("True")) {
+			if (item.getValue().equals("True")) {
 				cb.setChecked(true);
 			}
 
 			v = cb;
-		} else if (item.type.contains(";")) {
+		} else if (item.getType().contains(";")) {
 			sp = new Spinner(context);
 
 			choices = new ArrayList<String>();
-			for (String s : item.type.split(";")) {
+			for (String s : item.getType().split(";")) {
 				choices.add(s);
 			}
 
@@ -190,12 +197,12 @@ class ConfigItemView extends LinearLayout {
 			adp.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
 			sp.setAdapter(adp);
-			sp.setSelection(choices.indexOf(item.value));
+			sp.setSelection(choices.indexOf(item.getValue()));
 
 			v = sp;
 		} else {
 			v = new EditText(context);
-			((EditText) v).setText(item.value);
+			((EditText) v).setText(item.getValue());
 		}
 
 		addView(v);
@@ -208,7 +215,7 @@ class ConfigItemView extends LinearLayout {
 	 * @return
 	 */
 	public String getValue() {
-		if (item.type.equals("bool")) {
+		if (item.getType().equals("bool")) {
 			CheckBox cb = (CheckBox) v;
 			if (cb.isChecked())
 				return "True";

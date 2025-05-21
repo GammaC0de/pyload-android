@@ -12,11 +12,13 @@ import org.pyload.android.client.components.ExpandableListFragment;
 import org.pyload.android.client.components.TabHandler;
 import org.pyload.android.client.dialogs.FileInfoDialog;
 import org.pyload.android.client.module.GuiTask;
-import org.pyload.thrift.Destination;
-import org.pyload.thrift.DownloadStatus;
-import org.pyload.thrift.FileData;
-import org.pyload.thrift.PackageData;
-import org.pyload.thrift.Pyload.Client;
+import org.pyload.android.openapi.api.PyLoadRestApi;
+import org.pyload.android.openapi.models.ApiDeleteFilesPostRequest;
+import org.pyload.android.openapi.models.ApiDeletePackagesPostRequest;
+import org.pyload.android.openapi.models.Destination;
+import org.pyload.android.openapi.models.FileData;
+import org.pyload.android.openapi.models.PackageData;
+import org.pyload.android.openapi.models.DownloadStatus;
 
 import android.app.Activity;
 import android.content.Context;
@@ -59,16 +61,16 @@ public abstract class AbstractPackageFragment extends ExpandableListFragment
 			else if (b == null)
 				return -1;
 			else if (a instanceof PackageData && b instanceof PackageData)
-				return ((Short) ((PackageData) a).order).compareTo(((PackageData) b).order);
+				return ((PackageData) a).getOrder().compareTo(((PackageData) b).getOrder());
 			else if (a instanceof FileData && b instanceof FileData)
-				return ((Short) ((FileData) a).order).compareTo(((FileData) b).order);				
+				return ((FileData) a).getOrder().compareTo(((FileData) b).getOrder());
 			return 0;
 		}
 	};
 	protected int dest;
 	private List<PackageData> data;
 	private pyLoadApp app;
-	private Client client;
+	private PyLoadRestApi client;
 	// tab position
 	private int pos = -1;
 
@@ -119,12 +121,11 @@ public abstract class AbstractPackageFragment extends ExpandableListFragment
 			int childPos = ExpandableListView
 					.getPackedPositionChild(info.packedPosition);
 
-            final FileData file;
-            try {
-			    file = data.get(groupPos).links.get(childPos);
-            } catch (IndexOutOfBoundsException e) {
-                return false;
-            }
+			List <FileData> links = data.get(groupPos).getLinks();
+			if (links == null || childPos < 0 || childPos >= links.size()) {
+				return false;
+			}
+			final FileData file = links.get(childPos);
 
 			switch (item.getItemId()) {
 			case R.id.restart:
@@ -133,8 +134,8 @@ public abstract class AbstractPackageFragment extends ExpandableListFragment
 
 					public void run() {
 						client = app.getClient();
-						client.restartFile(file.fid);
-					}
+						app.executeNetworkCall(client.apiRestartFilePost(file.getFid()));
+                    }
 				}, app.handleSuccess));
 
 				break;
@@ -145,10 +146,11 @@ public abstract class AbstractPackageFragment extends ExpandableListFragment
 					public void run() {
 						client = app.getClient();
 						ArrayList<Integer> fids = new ArrayList<Integer>();
-						fids.add(file.fid);
+						fids.add(file.getFid());
 
-						client.deleteFiles(fids);
-					}
+						ApiDeleteFilesPostRequest request = new ApiDeleteFilesPostRequest().fileIds(fids);
+						app.executeNetworkCall(client.apiDeleteFilesPost(request));
+                    }
 				}, app.handleSuccess));
 
 				break;
@@ -181,7 +183,7 @@ public abstract class AbstractPackageFragment extends ExpandableListFragment
 
 					public void run() {
 						client = app.getClient();
-						client.restartPackage(pack.pid);
+						app.executeNetworkCall(client.apiRestartPackagePost(pack.getPid()));
 					}
 				}, app.handleSuccess));
 
@@ -193,9 +195,10 @@ public abstract class AbstractPackageFragment extends ExpandableListFragment
 					public void run() {
 						client = app.getClient();
 						ArrayList<Integer> pids = new ArrayList<Integer>();
-						pids.add(pack.pid);
-						client.deletePackages(pids);
-					}
+						pids.add(pack.getPid());
+						ApiDeletePackagesPostRequest request = new ApiDeletePackagesPostRequest().packageIds(pids);
+						app.executeNetworkCall(client.apiDeletePackagesPost(request));
+                    }
 				}, app.handleSuccess));
 
 				break;
@@ -208,13 +211,13 @@ public abstract class AbstractPackageFragment extends ExpandableListFragment
 						client = app.getClient();
 						Destination newDest;
 						if (dest == 0) {
-							newDest = Destination.Collector;
+							newDest = Destination.COLLECTOR;
 						} else {
-							newDest = Destination.Queue;
+							newDest = Destination.QUEUE;
 						}
 
-						client.movePackage(newDest, pack.pid);
-					}
+						app.executeNetworkCall(client.apiMovePackagePost(newDest, pack.getPid()));
+                    }
 				}, app.handleSuccess));
 
 				break;
@@ -250,7 +253,7 @@ public abstract class AbstractPackageFragment extends ExpandableListFragment
 		FileData file;
 		try {
 			pack = data.get(group);
-			file = pack.links.get(child);
+			file = pack.getLinks().get(child);
 		} catch (Exception e) {
 			return true;
 		}
@@ -295,9 +298,9 @@ public abstract class AbstractPackageFragment extends ExpandableListFragment
 			public void run() {
 				client = app.getClient();
 				if (dest == 0)
-					data = client.getQueueData();
+					data = app.executeNetworkCall(client.apiGetQueueDataGet());
 				else
-					data = client.getCollectorData();
+					data = app.executeNetworkCall(client.apiGetCollectorDataGet());
 			}
 		}, mUpdateResults);
 
@@ -308,7 +311,7 @@ public abstract class AbstractPackageFragment extends ExpandableListFragment
 		app.setProgress(false);
 		Collections.sort(data, mOrderComparator);
 		for (PackageData pak : data)
-			Collections.sort(pak.links, mOrderComparator);
+			Collections.sort(pak.getLinks(), mOrderComparator);
 
 		PackageListAdapter adapter = (PackageListAdapter) getExpandableListAdapter();
 		adapter.setData(data);
@@ -348,7 +351,7 @@ class PackageListAdapter extends BaseExpandableListAdapter {
 	}
 
 	public int getChildrenCount(int group) {
-		return data.get(group).links.size();
+		return data.get(group).getLinks().size();
 	}
 
 	public Object getGroup(int group) {
@@ -356,7 +359,7 @@ class PackageListAdapter extends BaseExpandableListAdapter {
 	}
 
 	public Object getChild(int group, int child) {
-		return data.get(group).links.get(child);
+		return data.get(group).getLinks().get(child);
 	}
 
 	public long getGroupId(int group) {
@@ -387,15 +390,15 @@ class PackageListAdapter extends BaseExpandableListAdapter {
 		}
 
 		GroupViewHolder holder = (GroupViewHolder) convertView.getTag();
-		holder.name.setText(pack.name);
+		holder.name.setText(pack.getName());
 
-		if (pack.linkstotal == 0)
-			pack.linkstotal = 1;
+		if (pack.getLinkstotal() == null || pack.getLinkstotal() == 0)
+			pack.setLinkstotal(1);
 
-		holder.progress.setProgress((pack.linksdone * 100) / pack.links	.size());
-		holder.size.setText(Utils.formatSize(pack.sizedone) + " / "
-				+ Utils.formatSize(pack.sizetotal));
-		holder.links.setText(pack.linksdone + " / " + pack.links.size());
+		holder.progress.setProgress((pack.getLinksdone() * 100) / pack.getLinks().size());
+		holder.size.setText(Utils.formatSize(pack.getSizedone()) + " / "
+				+ Utils.formatSize(pack.getSizetotal()));
+		holder.links.setText(pack.getLinksdone() + " / " + pack.getLinks().size());
 
 		return convertView;
 	}
@@ -403,7 +406,7 @@ class PackageListAdapter extends BaseExpandableListAdapter {
 	public View getChildView(int group, int child, boolean isLastChild,
 			View convertView, ViewGroup parent) {
 
-		FileData file = data.get(group).links.get(child);
+		FileData file = data.get(group).getLinks().get(child);
 
 		if (file == null)
 			return null;
@@ -424,27 +427,27 @@ class PackageListAdapter extends BaseExpandableListAdapter {
 
 		// seems to occure according to bug report
 		// no idea why, and what about other data, so returning the view instantly
-		if (file.name == null) {
+		if (file.getName() == null) {
 			holder.name.setText(R.string.lambda);
 			return convertView;
 		}
 
-		if (!file.name.equals(holder.name.getText()))
-			holder.name.setText(file.name);
+		if (!file.getName().equals(holder.name.getText()))
+			holder.name.setText(file.getName());
 
-		holder.status.setText(file.statusmsg);
-		holder.size.setText(Utils.formatSize(file.size));
-		holder.plugin.setText(file.plugin);
+		holder.status.setText(file.getStatusmsg());
+		holder.size.setText(Utils.formatSize(file.getSize()));
+		holder.plugin.setText(file.getPlugin());
 
-		if (file.status == DownloadStatus.Failed
-				|| file.status == DownloadStatus.Aborted
-				|| file.status == DownloadStatus.Offline) {
+		if (file.getStatus() == DownloadStatus.FAILED
+				|| file.getStatus() == DownloadStatus.ABORTED
+				|| file.getStatus() == DownloadStatus.OFFLINE) {
 			holder.status_icon.setImageResource(R.drawable.stop);
-		} else if (file.status == DownloadStatus.Finished) {
+		} else if (file.getStatus() == DownloadStatus.FINISHED) {
 			holder.status_icon.setImageResource(R.drawable.tick);
-		} else if (file.status == DownloadStatus.Waiting) {
+		} else if (file.getStatus() == DownloadStatus.WAITING) {
 			holder.status_icon.setImageResource(R.drawable.menu_clock);
-		} else if (file.status == DownloadStatus.Skipped) {
+		} else if (file.getStatus() == DownloadStatus.SKIPPED) {
 			holder.status_icon.setImageResource(R.drawable.tag);
 		} else {
 			holder.status_icon.setImageResource(0);

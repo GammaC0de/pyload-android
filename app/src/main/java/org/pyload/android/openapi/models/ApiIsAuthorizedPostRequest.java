@@ -27,7 +27,7 @@ import java.util.Map;
 /**
  * ApiIsAuthorizedPostRequest
  */
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", date = "2025-05-20T06:18:42.159061816Z[Etc/UTC]", comments = "Generator version: 7.14.0-SNAPSHOT")
+@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", date = "2025-06-11T06:38:43.484864605Z[Etc/UTC]", comments = "Generator version: 7.14.0-SNAPSHOT")
 public class ApiIsAuthorizedPostRequest {
   public static final String SERIALIZED_NAME_FUNC_NAME = "func_name";
   @SerializedName(SERIALIZED_NAME_FUNC_NAME)

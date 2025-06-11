@@ -30,4 +30,13 @@ public interface PyLoadAuthenticationApi {
     @retrofit2.http.Field("username") String username, @retrofit2.http.Field("password") String password
   );
 
+  /**
+   * Logout current user, clear session data
+   * 
+   * @return Call&lt;Void&gt;
+   */
+  @GET("api/logout")
+  Call<Void> apiLogoutGet();
+    
+
 }

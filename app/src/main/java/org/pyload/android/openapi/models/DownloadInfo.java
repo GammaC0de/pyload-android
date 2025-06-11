@@ -26,7 +26,7 @@ import org.pyload.android.openapi.models.DownloadStatus;
 /**
  * DownloadInfo
  */
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", date = "2025-05-20T06:18:42.159061816Z[Etc/UTC]", comments = "Generator version: 7.14.0-SNAPSHOT")
+@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", date = "2025-06-11T06:38:43.484864605Z[Etc/UTC]", comments = "Generator version: 7.14.0-SNAPSHOT")
 public class DownloadInfo {
   public static final String SERIALIZED_NAME_FID = "fid";
   @SerializedName(SERIALIZED_NAME_FID)
@@ -91,7 +91,7 @@ public class DownloadInfo {
   public static final String SERIALIZED_NAME_WAIT_UNTIL = "wait_until";
   @SerializedName(SERIALIZED_NAME_WAIT_UNTIL)
   @javax.annotation.Nonnull
-  private Integer waitUntil;
+  private Float waitUntil;
 
   public static final String SERIALIZED_NAME_PACKAGE_ID = "package_id";
   @SerializedName(SERIALIZED_NAME_PACKAGE_ID)
@@ -368,7 +368,7 @@ public class DownloadInfo {
     this.formatWait = formatWait;
   }
 
-  public DownloadInfo waitUntil(@javax.annotation.Nonnull Integer waitUntil) {
+  public DownloadInfo waitUntil(@javax.annotation.Nonnull Float waitUntil) {
     
     this.waitUntil = waitUntil;
     return this;
@@ -380,12 +380,12 @@ public class DownloadInfo {
    */
   @javax.annotation.Nonnull
 
-  public Integer getWaitUntil() {
+  public Float getWaitUntil() {
     return waitUntil;
   }
 
 
-  public void setWaitUntil(@javax.annotation.Nonnull Integer waitUntil) {
+  public void setWaitUntil(@javax.annotation.Nonnull Float waitUntil) {
     this.waitUntil = waitUntil;
   }
 

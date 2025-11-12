@@ -22,9 +22,8 @@ import org.pyload.android.client.module.AllTrustManager;
 import org.pyload.android.client.module.GuiTask;
 import org.pyload.android.client.module.TaskQueue;
 import org.pyload.android.openapi.ApiClient;
-import org.pyload.android.openapi.api.PyLoadAuthenticationApi;
 import org.pyload.android.openapi.api.PyLoadRestApi;
-import org.pyload.android.openapi.auth.ApiKeyAuth;
+import org.pyload.android.openapi.auth.HttpBasicAuth;
 
 import javax.net.ssl.*;
 
@@ -33,6 +32,7 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.security.KeyStore;
 import java.security.SecureRandom;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import retrofit2.Call;
@@ -118,18 +118,18 @@ public class pyLoadApp extends Application {
 		retrofit.converterFactories().remove(0);
 		apiClient.setAdapterBuilder(retrofit);
 
-		PyLoadAuthenticationApi authenticationApi = apiClient.createService(PyLoadAuthenticationApi.class);
 		boolean loginSuccessful;
         try {
-			Response<Void> loginResponse = authenticationApi.apiLoginPost(username, password).execute();
-            loginSuccessful = loginResponse.isSuccessful();
-			if (loginSuccessful) {
-				String sessionCookie = loginResponse.headers().get("Set-Cookie");
-				String[] sessionCookieKeyValue = sessionCookie.split(";", 2)[0].split("=", 2);
+            HttpBasicAuth basic_auth = new HttpBasicAuth();
+            basic_auth.setCredentials(username, password);
+            apiClient.addAuthorization("basicAuth", basic_auth);
 
-				apiClient.addAuthorization("cookieAuth", new ApiKeyAuth("cookie", sessionCookieKeyValue[0]));
-				apiClient.setApiKey(sessionCookieKeyValue[1]);
-				client = apiClient.createService(PyLoadRestApi.class);
+            PyLoadRestApi pyLoadRestApi = apiClient.createService(PyLoadRestApi.class);
+
+			Response<Map<String, Object>> checkAuth = pyLoadRestApi.apiCheckAuthPost(username, password).execute();
+            loginSuccessful = checkAuth.isSuccessful();
+			if (loginSuccessful) {
+				client = pyLoadRestApi;
 			}
         } catch (Exception e) {
 			throw new RuntimeException(e);

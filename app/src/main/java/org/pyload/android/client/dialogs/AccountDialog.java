@@ -25,18 +25,26 @@ import java.util.List;
 
 public class AccountDialog extends DialogFragment {
 
+    private List<AccountInfo> accountData;
+
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         final AccountAdapter adapter = new AccountAdapter(getActivity());
+
+        Runnable mSetData = new Runnable() {
+            @Override
+            public void run() {
+                adapter.setData(accountData);
+            }
+        };
 
         final pyLoadApp app = (pyLoadApp) getActivity().getApplication();
         GuiTask task = new GuiTask(new Runnable() {
             public void run() {
                 PyLoadRestApi client = app.getClient();
-                List<AccountInfo> accountData = app.executeNetworkCall(client.apiGetAccountsPost(false));
-                adapter.setData(accountData);
+                accountData = app.executeNetworkCall(client.apiGetAccountsPost(false));
             }
-        });
+        }, mSetData);
         app.addTask(task);
 
         ListView lv = new ListView(getActivity());

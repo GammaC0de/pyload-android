@@ -42,7 +42,7 @@ public class AccountDialog extends DialogFragment {
         GuiTask task = new GuiTask(new Runnable() {
             public void run() {
                 PyLoadRestApi client = app.getClient();
-                accountData = app.executeNetworkCall(client.apiGetAccountsPost(false));
+                accountData = app.executeNetworkCall(client.apiGetAccountsGet(false));
             }
         }, mSetData);
         app.addTask(task);

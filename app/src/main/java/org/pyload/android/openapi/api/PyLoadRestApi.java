@@ -122,8 +122,8 @@ public interface PyLoadRestApi {
    * @param password  (required)
    * @return Call&lt;Map&lt;String, Object&gt;&gt;
    */
-  @POST("api/check_auth")
-  Call<Map<String, Object>> apiCheckAuthPost(
+  @GET("api/check_auth")
+  Call<Map<String, Object>> apiCheckAuthGet(
     @retrofit2.http.Query("username") String username, @retrofit2.http.Query("password") String password
   );
 
@@ -188,8 +188,8 @@ public interface PyLoadRestApi {
    * Deletes all finished files and completely finished packages.
    * @return Call&lt;List&lt;Integer&gt;&gt;
    */
-  @GET("api/delete_finished")
-  Call<List<Integer>> apiDeleteFinishedGet();
+  @POST("api/delete_finished")
+  Call<List<Integer>> apiDeleteFinishedPost();
     
 
   /**
@@ -258,8 +258,8 @@ public interface PyLoadRestApi {
    * @param refresh reload account info (required)
    * @return Call&lt;List&lt;AccountInfo&gt;&gt;
    */
-  @POST("api/get_accounts")
-  Call<List<AccountInfo>> apiGetAccountsPost(
+  @GET("api/get_accounts")
+  Call<List<AccountInfo>> apiGetAccountsGet(
     @retrofit2.http.Query("refresh") Boolean refresh
   );
 
@@ -305,8 +305,8 @@ public interface PyLoadRestApi {
    * @param exclusive unused (optional, default to false)
    * @return Call&lt;CaptchaTask&gt;
    */
-  @POST("api/get_captcha_task")
-  Call<CaptchaTask> apiGetCaptchaTaskPost(
+  @GET("api/get_captcha_task")
+  Call<CaptchaTask> apiGetCaptchaTaskGet(
     @retrofit2.http.Query("exclusive") Boolean exclusive
   );
 
@@ -316,8 +316,8 @@ public interface PyLoadRestApi {
    * @param tid task id (required)
    * @return Call&lt;String&gt;
    */
-  @POST("api/get_captcha_task_status")
-  Call<String> apiGetCaptchaTaskStatusPost(
+  @GET("api/get_captcha_task_status")
+  Call<String> apiGetCaptchaTaskStatusGet(
     @retrofit2.http.Query("tid") Integer tid
   );
 
@@ -365,8 +365,8 @@ public interface PyLoadRestApi {
    * @param section &#39;plugin&#39; or &#39;core&#39; (optional, default to core)
    * @return Call&lt;Object&gt;
    */
-  @POST("api/get_config_value")
-  Call<Object> apiGetConfigValuePost(
+  @GET("api/get_config_value")
+  Call<Object> apiGetConfigValueGet(
     @retrofit2.http.Query("category") String category, @retrofit2.http.Query("option") String option, @retrofit2.http.Query("section") String section
   );
 
@@ -376,8 +376,8 @@ public interface PyLoadRestApi {
    * @param uuid  (required)
    * @return Call&lt;List&lt;EventInfo&gt;&gt;
    */
-  @POST("api/get_events")
-  Call<List<EventInfo>> apiGetEventsPost(
+  @GET("api/get_events")
+  Call<List<EventInfo>> apiGetEventsGet(
     @retrofit2.http.Query("uuid") String uuid
   );
 
@@ -387,8 +387,8 @@ public interface PyLoadRestApi {
    * @param fileId file id (required)
    * @return Call&lt;FileData&gt;
    */
-  @POST("api/get_file_data")
-  Call<FileData> apiGetFileDataPost(
+  @GET("api/get_file_data")
+  Call<FileData> apiGetFileDataGet(
     @retrofit2.http.Query("file_id") Integer fileId
   );
 
@@ -398,8 +398,8 @@ public interface PyLoadRestApi {
    * @param packageId  (required)
    * @return Call&lt;Map&lt;String, Integer&gt;&gt;
    */
-  @POST("api/get_file_order")
-  Call<Map<String, Integer>> apiGetFileOrderPost(
+  @GET("api/get_file_order")
+  Call<Map<String, Integer>> apiGetFileOrderGet(
     @retrofit2.http.Query("package_id") Integer packageId
   );
 
@@ -409,8 +409,8 @@ public interface PyLoadRestApi {
    * @param plugin pluginname (required)
    * @return Call&lt;Map&lt;String, String&gt;&gt;
    */
-  @POST("api/get_info_by_plugin")
-  Call<Map<String, String>> apiGetInfoByPluginPost(
+  @GET("api/get_info_by_plugin")
+  Call<Map<String, String>> apiGetInfoByPluginGet(
     @retrofit2.http.Query("plugin") String plugin
   );
 
@@ -420,8 +420,8 @@ public interface PyLoadRestApi {
    * @param offset line offset (optional, default to 0)
    * @return Call&lt;List&lt;String&gt;&gt;
    */
-  @POST("api/get_log")
-  Call<List<String>> apiGetLogPost(
+  @GET("api/get_log")
+  Call<List<String>> apiGetLogGet(
     @retrofit2.http.Query("offset") Integer offset
   );
 
@@ -431,8 +431,8 @@ public interface PyLoadRestApi {
    * @param packageId package id (required)
    * @return Call&lt;PackageData&gt;
    */
-  @POST("api/get_package_data")
-  Call<PackageData> apiGetPackageDataPost(
+  @GET("api/get_package_data")
+  Call<PackageData> apiGetPackageDataGet(
     @retrofit2.http.Query("package_id") Integer packageId
   );
 
@@ -442,8 +442,8 @@ public interface PyLoadRestApi {
    * @param packageId package id (required)
    * @return Call&lt;PackageData&gt;
    */
-  @POST("api/get_package_info")
-  Call<PackageData> apiGetPackageInfoPost(
+  @GET("api/get_package_info")
+  Call<PackageData> apiGetPackageInfoGet(
     @retrofit2.http.Query("package_id") Integer packageId
   );
 
@@ -453,8 +453,8 @@ public interface PyLoadRestApi {
    * @param destination &#x60;Destination&#x60; (required)
    * @return Call&lt;Map&lt;String, Integer&gt;&gt;
    */
-  @POST("api/get_package_order")
-  Call<Map<String, Integer>> apiGetPackageOrderPost(
+  @GET("api/get_package_order")
+  Call<Map<String, Integer>> apiGetPackageOrderGet(
     @retrofit2.http.Query("destination") Destination destination
   );
 
@@ -513,26 +513,26 @@ public interface PyLoadRestApi {
     
 
   /**
-   * similar to &#x60;check_auth&#x60; but returns UserData thrift type.
-   * similar to &#x60;check_auth&#x60; but returns UserData thrift type.
+   * similar to &#x60;check_auth&#x60; but returns UserData type.
+   * similar to &#x60;check_auth&#x60; but returns UserData type.
    * @param username  (required)
    * @param password  (required)
    * @return Call&lt;OldUserData&gt;
    */
-  @POST("api/getUserData")
-  Call<OldUserData> apiGetUserDataPost(
+  @GET("api/getUserData")
+  Call<OldUserData> apiGetUserDataGet(
     @retrofit2.http.Query("username") String username, @retrofit2.http.Query("password") String password
   );
 
   /**
-   * similar to &#x60;check_auth&#x60; but returns UserData thrift type.
-   * similar to &#x60;check_auth&#x60; but returns UserData thrift type.
+   * similar to &#x60;check_auth&#x60; but returns UserData pe.
+   * similar to &#x60;check_auth&#x60; but returns UserData pe.
    * @param username  (required)
    * @param password  (required)
    * @return Call&lt;UserData&gt;
    */
-  @POST("api/get_userdata")
-  Call<UserData> apiGetUserdataPost(
+  @GET("api/get_userdata")
+  Call<UserData> apiGetUserdataGet(
     @retrofit2.http.Query("username") String username, @retrofit2.http.Query("password") String password
   );
 
@@ -552,8 +552,8 @@ public interface PyLoadRestApi {
    * @param funcName  (required)
    * @return Call&lt;Boolean&gt;
    */
-  @POST("api/has_service")
-  Call<Boolean> apiHasServicePost(
+  @GET("api/has_service")
+  Call<Boolean> apiHasServiceGet(
     @retrofit2.http.Query("plugin") String plugin, @retrofit2.http.Query("func_name") String funcName
   );
 
@@ -603,8 +603,8 @@ public interface PyLoadRestApi {
    * Clean way to quit pyLoad.
    * @return Call&lt;Void&gt;
    */
-  @GET("api/kill")
-  Call<Void> apiKillGet();
+  @POST("api/kill")
+  Call<Void> apiKillPost();
     
 
   /**
@@ -676,8 +676,8 @@ public interface PyLoadRestApi {
    * Pause server: It won&#39;t start any new downloads, but nothing gets aborted.
    * @return Call&lt;Void&gt;
    */
-  @GET("api/pause_server")
-  Call<Void> apiPauseServerGet();
+  @POST("api/pause_server")
+  Call<Void> apiPauseServerPost();
     
 
   /**
@@ -686,8 +686,8 @@ public interface PyLoadRestApi {
    * @param rid &#x60;ResultID&#x60; (required)
    * @return Call&lt;OnlineCheck&gt;
    */
-  @POST("api/poll_results")
-  Call<OnlineCheck> apiPollResultsPost(
+  @GET("api/poll_results")
+  Call<OnlineCheck> apiPollResultsGet(
     @retrofit2.http.Query("rid") Integer rid
   );
 
@@ -752,8 +752,8 @@ public interface PyLoadRestApi {
    * Restarts all failed failes.
    * @return Call&lt;Void&gt;
    */
-  @GET("api/restart_failed")
-  Call<Void> apiRestartFailedGet();
+  @POST("api/restart_failed")
+  Call<Void> apiRestartFailedPost();
     
 
   /**
@@ -768,15 +768,6 @@ public interface PyLoadRestApi {
   );
 
   /**
-   * Restart pyload core.
-   * Restart pyload core.
-   * @return Call&lt;Void&gt;
-   */
-  @GET("api/restart")
-  Call<Void> apiRestartGet();
-    
-
-  /**
    * Restarts a package, resets every containing files.
    * Restarts a package, resets every containing files.
    * @param packageId package id (required)
@@ -786,6 +777,15 @@ public interface PyLoadRestApi {
   Call<Void> apiRestartPackagePost(
     @retrofit2.http.Query("package_id") Integer packageId
   );
+
+  /**
+   * Restart pyload core.
+   * Restart pyload core.
+   * @return Call&lt;Void&gt;
+   */
+  @POST("api/restart")
+  Call<Void> apiRestartPost();
+    
 
   /**
    * Calls a service (a method in addon plugin).
@@ -889,8 +889,8 @@ public interface PyLoadRestApi {
    * Aborts all running downloads.
    * @return Call&lt;Void&gt;
    */
-  @GET("api/stop_all_downloads")
-  Call<Void> apiStopAllDownloadsGet();
+  @POST("api/stop_all_downloads")
+  Call<Void> apiStopAllDownloadsPost();
     
 
   /**
@@ -912,8 +912,8 @@ public interface PyLoadRestApi {
    * Toggle pause state.
    * @return Call&lt;Boolean&gt;
    */
-  @GET("api/toggle_pause")
-  Call<Boolean> apiTogglePauseGet();
+  @POST("api/toggle_pause")
+  Call<Boolean> apiTogglePausePost();
     
 
   /**
@@ -921,8 +921,8 @@ public interface PyLoadRestApi {
    * Toggle proxy activation.
    * @return Call&lt;Boolean&gt;
    */
-  @GET("api/toggle_proxy")
-  Call<Boolean> apiToggleProxyGet();
+  @POST("api/toggle_proxy")
+  Call<Boolean> apiToggleProxyPost();
     
 
   /**
@@ -930,8 +930,8 @@ public interface PyLoadRestApi {
    * Toggle reconnect activation.
    * @return Call&lt;Boolean&gt;
    */
-  @GET("api/toggle_reconnect")
-  Call<Boolean> apiToggleReconnectGet();
+  @POST("api/toggle_reconnect")
+  Call<Boolean> apiToggleReconnectPost();
     
 
   /**
@@ -939,8 +939,8 @@ public interface PyLoadRestApi {
    * Unpause server: New Downloads will be started.
    * @return Call&lt;Void&gt;
    */
-  @GET("api/unpause_server")
-  Call<Void> apiUnpauseServerGet();
+  @POST("api/unpause_server")
+  Call<Void> apiUnpauseServerPost();
     
 
   /**
@@ -976,8 +976,8 @@ public interface PyLoadRestApi {
    * @param username  (required)
    * @return Call&lt;Boolean&gt;
    */
-  @POST("api/user_exists")
-  Call<Boolean> apiUserExistsPost(
+  @GET("api/user_exists")
+  Call<Boolean> apiUserExistsGet(
     @retrofit2.http.Query("username") String username
   );
 

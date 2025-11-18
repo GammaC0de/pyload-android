@@ -208,7 +208,7 @@ public class pyLoad extends FragmentTabsPager
                 public void run()
 				{
                     PyLoadRestApi client = app.getClient();
-					app.executeNetworkCall(client.apiRestartFailedGet());
+					app.executeNetworkCall(client.apiRestartFailedPost());
                 }
             }, app.handleSuccess));
 

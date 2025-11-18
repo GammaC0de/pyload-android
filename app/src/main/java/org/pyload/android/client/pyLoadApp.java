@@ -126,7 +126,7 @@ public class pyLoadApp extends Application {
 
             PyLoadRestApi pyLoadRestApi = apiClient.createService(PyLoadRestApi.class);
 
-			Response<Map<String, Object>> checkAuth = pyLoadRestApi.apiCheckAuthPost(username, password).execute();
+			Response<Map<String, Object>> checkAuth = pyLoadRestApi.apiCheckAuthGet(username, password).execute();
             loginSuccessful = checkAuth.isSuccessful();
 			if (loginSuccessful) {
 				client = pyLoadRestApi;

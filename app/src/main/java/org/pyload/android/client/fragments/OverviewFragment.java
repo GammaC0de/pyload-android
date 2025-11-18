@@ -82,7 +82,7 @@ public class OverviewFragment extends ListFragment implements
 			status = app.executeNetworkCall(client.apiStatusServerGet());
 			if (app.executeNetworkCall(client.apiIsCaptchaWaitingGet())) {
 				Log.d("pyLoad", "Captcha available");
-				captcha = app.executeNetworkCall(client.apiGetCaptchaTaskPost(false));
+				captcha = app.executeNetworkCall(client.apiGetCaptchaTaskGet(false));
 				Log.d("pyload", captcha.getResultType());
 				showNotification();
 			}
@@ -134,7 +134,7 @@ public class OverviewFragment extends ListFragment implements
                 app.addTask(new GuiTask(new Runnable() {
      				public void run() {
 						PyLoadRestApi client = app.getClient();
-						app.executeNetworkCall(client.apiTogglePauseGet());
+						app.executeNetworkCall(client.apiTogglePausePost());
                     }
      			}, app.handleSuccess));
             }
@@ -146,7 +146,7 @@ public class OverviewFragment extends ListFragment implements
                 app.addTask(new GuiTask(new Runnable() {
                     public void run() {
                         PyLoadRestApi client = app.getClient();
-						app.executeNetworkCall(client.apiToggleReconnectGet());
+						app.executeNetworkCall(client.apiToggleReconnectPost());
                     }
                 }, app.handleSuccess));
             }

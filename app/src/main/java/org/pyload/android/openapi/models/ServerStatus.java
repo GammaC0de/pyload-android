@@ -51,7 +51,7 @@ public class ServerStatus {
   public static final String SERIALIZED_NAME_SPEED = "speed";
   @SerializedName(SERIALIZED_NAME_SPEED)
   @javax.annotation.Nonnull
-  private Integer speed;
+  private Long speed;
 
   public static final String SERIALIZED_NAME_DOWNLOAD = "download";
   @SerializedName(SERIALIZED_NAME_DOWNLOAD)
@@ -160,7 +160,7 @@ public class ServerStatus {
     this.total = total;
   }
 
-  public ServerStatus speed(@javax.annotation.Nonnull Integer speed) {
+  public ServerStatus speed(@javax.annotation.Nonnull Long speed) {
     
     this.speed = speed;
     return this;
@@ -172,12 +172,12 @@ public class ServerStatus {
    */
   @javax.annotation.Nonnull
 
-  public Integer getSpeed() {
+  public Long getSpeed() {
     return speed;
   }
 
 
-  public void setSpeed(@javax.annotation.Nonnull Integer speed) {
+  public void setSpeed(@javax.annotation.Nonnull Long speed) {
     this.speed = speed;
   }
 

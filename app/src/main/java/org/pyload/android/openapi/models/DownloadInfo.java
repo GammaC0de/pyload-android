@@ -42,7 +42,7 @@ public class DownloadInfo {
   public static final String SERIALIZED_NAME_SPEED = "speed";
   @SerializedName(SERIALIZED_NAME_SPEED)
   @javax.annotation.Nonnull
-  private Float speed;
+  private Long speed;
 
   public static final String SERIALIZED_NAME_ETA = "eta";
   @SerializedName(SERIALIZED_NAME_ETA)
@@ -159,7 +159,7 @@ public class DownloadInfo {
     this.name = name;
   }
 
-  public DownloadInfo speed(@javax.annotation.Nonnull Float speed) {
+  public DownloadInfo speed(@javax.annotation.Nonnull Long speed) {
     
     this.speed = speed;
     return this;
@@ -171,12 +171,12 @@ public class DownloadInfo {
    */
   @javax.annotation.Nonnull
 
-  public Float getSpeed() {
+  public Long getSpeed() {
     return speed;
   }
 
 
-  public void setSpeed(@javax.annotation.Nonnull Float speed) {
+  public void setSpeed(@javax.annotation.Nonnull Long speed) {
     this.speed = speed;
   }
 

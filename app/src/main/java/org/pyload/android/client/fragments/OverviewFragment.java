@@ -423,7 +423,7 @@ class OverviewAdapter extends BaseAdapter {
 			holder.percent.setText(info.getPercent() + "%");
 			holder.size_done.setText(Utils.formatSize(info.getSize() - info.getBleft()));
 
-			holder.speed.setText(Utils.formatSize(Math.round(info.getSpeed())) + "/s");
+			holder.speed.setText(Utils.formatSize(info.getSpeed()) + "/s");
 			holder.eta.setText(info.getFormatEta());
 
 		} else if (info.getStatus() == DownloadStatus.WAITING) {

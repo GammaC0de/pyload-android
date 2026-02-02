@@ -69,7 +69,7 @@ public class pyLoadApp extends Application {
 			return getString(R.string.off);
 	}
 
-	private boolean login() {
+	private boolean checkAuth() {
 		// replace protocol, some user also enter it
 		String host = prefs.getString("host", "10.0.2.2").replaceFirst("^[a-zA-z]+://", "");
 		int port = Integer.parseInt(prefs.getString("port", "8000"));
@@ -118,7 +118,7 @@ public class pyLoadApp extends Application {
 		retrofit.converterFactories().remove(0);
 		apiClient.setAdapterBuilder(retrofit);
 
-		boolean loginSuccessful;
+		boolean authSuccessful;
         try {
             HttpBasicAuth basic_auth = new HttpBasicAuth();
             basic_auth.setCredentials(username, password);
@@ -127,23 +127,23 @@ public class pyLoadApp extends Application {
             PyLoadRestApi pyLoadRestApi = apiClient.createService(PyLoadRestApi.class);
 
 			Response<Map<String, Object>> checkAuth = pyLoadRestApi.apiCheckAuthGet(username, password).execute();
-            loginSuccessful = checkAuth.isSuccessful();
-			if (loginSuccessful) {
+            authSuccessful = checkAuth.isSuccessful();
+			if (authSuccessful) {
 				client = pyLoadRestApi;
 			}
         } catch (Exception e) {
 			throw new RuntimeException(e);
         }
 
-		return loginSuccessful;
+		return authSuccessful;
 	}
 
 	public PyLoadRestApi getClient() throws WrongLogin, WrongServer {
 
 		if (client == null) {
 			Log.d("pyLoad", "Creating new Client");
-			boolean loggedIn = login();
-			if (!loggedIn) {
+			boolean authSuccessful = checkAuth();
+			if (!authSuccessful) {
 				client = null;
 				throw new WrongLogin();
 			}

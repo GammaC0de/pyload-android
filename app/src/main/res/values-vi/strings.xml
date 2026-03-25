@@ -21,8 +21,8 @@
   <string name="ip_desc">IP hoặc tên máy chủ của nhân pyLoad.</string>
   <string name="port">Cổng</string>
   <string name="port_desc">Cổng của PyloadBackend mà bạn thiết lập trong phiên điều khiển.</string>
-  <string name="username">Tên người dùng</string>
-  <string name="username_desc">Tên người dùng mà bạn sử dụng để đăng nhập.</string>
+  <string name="api_key">Tên người dùng</string>
+  <string name="api_key_desc">Tên người dùng mà bạn sử dụng để đăng nhập.</string>
   <string name="password">Mật khẩu</string>
   <string name="login">Đăng nhập</string>
   <string name="pref_name">pyLoad – Tùy chọn</string>

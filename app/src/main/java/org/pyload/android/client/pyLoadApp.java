@@ -23,7 +23,9 @@ import org.pyload.android.client.module.GuiTask;
 import org.pyload.android.client.module.TaskQueue;
 import org.pyload.android.openapi.ApiClient;
 import org.pyload.android.openapi.api.PyLoadRestApi;
+import org.pyload.android.openapi.auth.ApiKeyAuth;
 import org.pyload.android.openapi.auth.HttpBasicAuth;
+import org.pyload.android.openapi.models.ServerStatus;
 
 import javax.net.ssl.*;
 
@@ -73,8 +75,7 @@ public class pyLoadApp extends Application {
 		// replace protocol, some user also enter it
 		String host = prefs.getString("host", "10.0.2.2").replaceFirst("^[a-zA-z]+://", "");
 		int port = Integer.parseInt(prefs.getString("port", "8000"));
-		String username = prefs.getString("username", "User");
-		String password = prefs.getString("password", "pwhere");
+		String apiKey = prefs.getString("api_key", "");
 
         ApiClient apiClient = new ApiClient();
 		apiClient.getOkBuilder()
@@ -120,14 +121,14 @@ public class pyLoadApp extends Application {
 
 		boolean authSuccessful;
         try {
-            HttpBasicAuth basic_auth = new HttpBasicAuth();
-            basic_auth.setCredentials(username, password);
-            apiClient.addAuthorization("basicAuth", basic_auth);
+            ApiKeyAuth apiKeyAuth = new ApiKeyAuth("header", "X-API-Key");
+			apiKeyAuth.setApiKey(apiKey);
+            apiClient.addAuthorization("ApiKeyAuth", apiKeyAuth);
 
             PyLoadRestApi pyLoadRestApi = apiClient.createService(PyLoadRestApi.class);
 
-			Response<Map<String, Object>> checkAuth = pyLoadRestApi.apiCheckAuthGet(username, password).execute();
-            authSuccessful = checkAuth.isSuccessful();
+			Response<ServerStatus> serverStatus = pyLoadRestApi.apiStatusServerGet().execute();
+            authSuccessful = serverStatus.isSuccessful();
 			if (authSuccessful) {
 				client = pyLoadRestApi;
 			}

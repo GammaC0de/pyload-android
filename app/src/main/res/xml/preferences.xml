@@ -15,8 +15,7 @@
         
         
     </PreferenceCategory><PreferenceCategory android:key="login" android:title="@string/login">
-        <EditTextPreference android:key="username" android:summary="@string/username_desc" android:title="@string/username" android:singleLine="true"/>
-        <EditTextPreference android:key="password" android:title="@string/password" android:singleLine="true" android:password="true"/>
+        <EditTextPreference android:key="api_key" android:summary="@string/api_key_desc" android:title="@string/api_key" android:singleLine="true"/>
     </PreferenceCategory><PreferenceCategory android:key="server" android:title="@string/server">
         <EditTextPreference android:key="host" android:summary="@string/ip_desc" android:title="@string/ip" android:singleLine="true"/>
         <EditTextPreference android:key="port" android:summary="@string/port_desc" android:title="@string/port" android:defaultValue="8000" android:numeric="integer" android:singleLine="true"/>

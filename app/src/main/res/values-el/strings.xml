@@ -21,8 +21,8 @@
   <string name="ip_desc">Διεύθυνση IP ή όνομα κεντρικού υπολογιστή του απομακρυσμένου πυρήνα pyLoad.</string>
   <string name="port">Θύρα</string>
   <string name="port_desc">Η θύρα του PyloadBackend που ορίσατε στην ενότητα απομακρυσμένων ρυθμίσεων.</string>
-  <string name="username">Όνομα Χρήστη</string>
-  <string name="username_desc">Το όνομα χρήστη που χρησιμοποιείτε για να συνδεθείτε.</string>
+  <string name="api_key">Όνομα Χρήστη</string>
+  <string name="api_key_desc">Το όνομα χρήστη που χρησιμοποιείτε για να συνδεθείτε.</string>
   <string name="password">Κωδικός πρόσβασης</string>
   <string name="login">Σύνδεση</string>
   <string name="pref_name">pyLoad - Προτιμήσεις</string>

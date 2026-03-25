@@ -21,13 +21,13 @@
   <string name="ip_desc">IP ou nome do host do Core remoto do pyLoad .</string>
   <string name="port">Porta</string>
   <string name="port_desc">A porta do PyloadBackend que você definiu na seção remota.</string>
-  <string name="api_key">Nome do usuário</string>
-  <string name="api_key_desc">Nome de usuário que você usar para logar.</string>
+  <string name="api_key">Chave API</string>
+  <string name="api_key_desc">Sua chave de API para autenticação.</string>
   <string name="password">Senha</string>
   <string name="login">Login</string>
   <string name="pref_name">pyLoad - preferências</string>
   <string name="no_connection">Não foi possível estabelecer a conexão:</string>
-  <string name="bad_login">Nome de usuário/senha incorreto.</string>
+  <string name="bad_login">Chave API inválida.</string>
   <string name="move">Localização de movimento</string>
   <string name="on">ligado</string>
   <string name="off">desligado</string>

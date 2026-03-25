@@ -21,13 +21,13 @@
   <string name="ip_desc">عنوان IP او اسم المضيف لمصدر باي لود البعيد.</string>
   <string name="port">المنفذ</string>
   <string name="port_desc">المنفذ لPyloadBackend اللذي وضعتة في الجزء البعيد.</string>
-  <string name="api_key">اسم المستخدم</string>
-  <string name="api_key_desc">اسم المستخدم الذي استخدمتة لتسجيل الدخول.</string>
+  <string name="api_key">مفتاح API</string>
+  <string name="api_key_desc">مفتاح API الخاص بك للمصادقة.</string>
   <string name="password">كلمة المرور</string>
   <string name="login">تسجيل الدخول</string>
   <string name="pref_name">خيارات - باي لود</string>
   <string name="no_connection">لا يمكن انشاء الاتصال:</string>
-  <string name="bad_login">اسم مستخدم او/ كلمة مرور خاطئة.</string>
+  <string name="bad_login">مفتاح API غير صالح.</string>
   <string name="move">نقل المكان</string>
   <string name="on">تشغيل</string>
   <string name="off">ايقاف</string>

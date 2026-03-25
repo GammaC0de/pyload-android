@@ -21,13 +21,13 @@
   <string name="ip_desc">IP или хост удаленного pyLoad Core сервера.</string>
   <string name="port">Порт</string>
   <string name="port_desc">Порт PyloadBackend, заданный в удаленной части.</string>
-  <string name="api_key">Пользователь</string>
-  <string name="api_key_desc">Имя пользователя используемое для логина.</string>
+  <string name="api_key">API-ключ</string>
+  <string name="api_key_desc">Ваш API-ключ для аутентификации.</string>
   <string name="password">Пароль</string>
   <string name="login">Логин</string>
   <string name="pref_name">pyLoad - Установки</string>
   <string name="no_connection">Не удалось установить соединение:</string>
-  <string name="bad_login">Неправильные пользователь/пароль.</string>
+  <string name="bad_login">Недействительный API-ключ.</string>
   <string name="move">Переместить</string>
   <string name="on">вкл.</string>
   <string name="off">выкл.</string>

@@ -21,13 +21,13 @@
   <string name="ip_desc">A távoli pyLoad Core IP vagy host címe.</string>
   <string name="port">Port</string>
   <string name="port_desc">A PyloadBackend szerver port-ja, ami a távoli elérésnél van beállítva.</string>
-  <string name="api_key">Felhasználónév</string>
-  <string name="api_key_desc">A felhasználói név amit a belépéshez használ.</string>
+  <string name="api_key">API kulcs</string>
+  <string name="api_key_desc">Az API kulcsod hitelesítéshez.</string>
   <string name="password">Jelszó</string>
   <string name="login">Bejelentkezés</string>
   <string name="pref_name">pyLoad - Beállítások</string>
   <string name="no_connection">Nem sikerült kapcsolatot létesíteni:</string>
-  <string name="bad_login">Hibás felhasználói név vagy jelszó.</string>
+  <string name="bad_login">Érvénytelen API-kulcs.</string>
   <string name="move">Hely áthelyezése</string>
   <string name="on">be</string>
   <string name="off">ki</string>

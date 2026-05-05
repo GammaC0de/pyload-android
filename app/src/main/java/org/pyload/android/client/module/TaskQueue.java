@@ -1,8 +1,6 @@
 package org.pyload.android.client.module;
 
-import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Map.Entry;
 
 import org.pyload.android.client.pyLoadApp;
 
@@ -20,7 +18,6 @@ import android.util.Log;
 
 public class TaskQueue {
 	private final LinkedList<GuiTask> tasks = new LinkedList<GuiTask>();
-	private HashMap<Throwable, Runnable> exceptionMap;
 	private Handler mHandler;
 	private pyLoadApp app;
 
@@ -33,10 +30,9 @@ public class TaskQueue {
 		}
 	}
 
-	public TaskQueue(pyLoadApp app, Handler mHandler, HashMap<Throwable, Runnable> exceptionMap) {
+	public TaskQueue(pyLoadApp app, Handler mHandler) {
 		this.app = app;
 		this.mHandler = mHandler;
-		this.exceptionMap = exceptionMap;
 
 		internalRunnable = new InternalRunnable();
 	}
@@ -97,27 +93,9 @@ public class TaskQueue {
 				Log.e("pyLoad", "Task threw an exception", t);
 				app.setLastException(t);
 				
-				if (task.hasCritical()){
+				if (task.hasCritical()) {
 					mHandler.post(task.getCritical());
 				}
-				
-				if (task.hasExceptionMap()) {
-					for (Entry<Throwable, Runnable> set : task
-							.getExceptionMap().entrySet()) {
-						if (t.getClass() == set.getKey().getClass()) {
-							mHandler.post(set.getValue());
-						}
-
-					}
-				}
-
-				for (Entry<Throwable, Runnable> set : exceptionMap.entrySet()) {
-					if (t.getClass() == set.getKey().getClass()) {
-						mHandler.post(set.getValue());
-					}
-
-				}
-
 			}
 		}
 	}

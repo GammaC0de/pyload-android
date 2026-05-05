@@ -7,11 +7,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.pyload.android.client.R;
+import org.pyload.android.client.module.Utils;
 import org.pyload.android.client.pyLoadApp;
 import org.pyload.android.client.module.GuiTask;
 import org.pyload.android.client.module.SeparatedListAdapter;
-import org.pyload.thrift.ConfigSection;
-import org.pyload.thrift.Pyload.Client;
+import org.pyload.android.openapi.api.PyLoadRestApi;
+import org.pyload.android.openapi.models.ConfigSection;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -93,10 +94,9 @@ public class SettingsFragment extends ListFragment {
 		GuiTask task = new GuiTask(new Runnable() {
 
 			public void run() {
-				Client client = app.getClient();
-				generalData = client.getConfig();
-				pluginData = client.getPluginConfig();
-
+				PyLoadRestApi client = app.getClient();
+				generalData = app.executeNetworkCall(client.apiGetConfigGet());
+				pluginData = app.executeNetworkCall(client.apiGetPluginConfigGet());
 			}
 		}, mUpdateResults);
 
@@ -118,7 +118,7 @@ public class SettingsFragment extends ListFragment {
 			args.putString("type", "plugin");
 		else
 			args.putString("type", "core");
-		args.putSerializable("section", item.getValue());
+		args.putString("section", Utils.encodeObject(item.getValue()));
 
 		Fragment f = new ConfigSectionFragment(mRefresh);
 		f.setArguments(args);
@@ -202,10 +202,10 @@ class SettingsAdapter extends BaseAdapter {
 		ConfigSection section = data.get(row).getValue();
 		holder = (ViewHolder) convertView.getTag();
 
-		holder.name.setText(section.description);
+		holder.name.setText(section.getDescription());
 
-		if (section.outline != null) {
-			holder.desc.setText(section.outline);
+		if (section.getOutline() != null) {
+			holder.desc.setText(section.getOutline());
 			holder.desc.setMaxHeight(100);
 		} else {
 			holder.desc.setMaxHeight(0);

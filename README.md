@@ -1,11 +1,17 @@
 ### pyLoad Android Client 
 
-This is the official Android client for the **pyLoad** Download Manager. You need to have pyLoad running on your pc or server.
+This is the official Android client for the **pyLoad-ng** Download Manager. You need to have pyLoad running on your pc or server.
 In case you don't already have it, download it from https://pyload.net, its free, open-source and available for many platforms.
 
 Please report any issues with the client here: https://github.com/pyload/pyload-android/issues
 
-In order to use the Android client make sure the newest pyLoad Core with version 0.4.9 and up is running on your system, accessible over the network, the ip/hostname is correct, and the port forwarded if necessary.
+In order to use the Android client make sure the newest pyLoad Core with version 0.5 and up is running on your system, accessible over the network, the ip/hostname is correct, and the port forwarded if necessary.
+
+#### Generate an API key
+
+You need an API key to connect the app to your pyLoad instance. Open pyLoad in your browser and navigate to:  
+**Settings** → **Users** → Next to your username tap on **Actions** → **Manage API Keys** → **Generate**.  
+Make sure to copy the API key when it is shown as you will not be able to view it again after closing the dialog.
 
 #### Features
 - Modern UI (Android 4+ components)

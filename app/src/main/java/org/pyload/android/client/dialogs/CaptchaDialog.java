@@ -1,9 +1,10 @@
 package org.pyload.android.client.dialogs;
 
-import org.apache.commons.codec.binary.Base64;
+import android.util.Base64;
 import org.pyload.android.client.R;
+import org.pyload.android.client.module.Utils;
 import org.pyload.android.client.pyLoad;
-import org.pyload.thrift.CaptchaTask;
+import org.pyload.android.openapi.models.CaptchaTask;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -29,7 +30,7 @@ public class CaptchaDialog extends DialogFragment {
 	public static CaptchaDialog newInstance(CaptchaTask task) {
 		CaptchaDialog dialog = new CaptchaDialog();
 		Bundle args = new Bundle();
-		args.putSerializable("task", task);
+		args.putString("task", Utils.encodeObject(task));
 		dialog.setArguments(args);
 		return dialog;
 	}
@@ -37,7 +38,7 @@ public class CaptchaDialog extends DialogFragment {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		task = (CaptchaTask) getArguments().getSerializable("task");
+		task = Utils.decodeObject(getArguments().getString("task"), CaptchaTask.class);
 	}
 
 	@Override
@@ -49,7 +50,7 @@ public class CaptchaDialog extends DialogFragment {
 
 		ImageView image = (ImageView) dialog.findViewById(R.id.image);
 
-		byte[] decoded = Base64.decodeBase64(task.getData());
+		byte[] decoded = Base64.decode(Utils.encodeObject(task.getData()), Base64.DEFAULT);
 
 		Bitmap bm = BitmapFactory.decodeByteArray(decoded, 0, decoded.length);
 		image.setImageBitmap(bm);
@@ -84,7 +85,7 @@ public class CaptchaDialog extends DialogFragment {
 	}
 
 	public void onClick(){
-		((pyLoad) getActivity()).setCaptchaResult(task.tid, text.getText().toString());
+		((pyLoad) getActivity()).setCaptchaResult(task.getTid(), text.getText().toString());
 	}
 
 	public void setOnDismissListener(OnDismissListener listener) {

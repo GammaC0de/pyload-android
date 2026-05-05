@@ -15,8 +15,8 @@ import org.pyload.android.client.R;
 import org.pyload.android.client.module.GuiTask;
 import org.pyload.android.client.module.Utils;
 import org.pyload.android.client.pyLoadApp;
-import org.pyload.thrift.AccountInfo;
-import org.pyload.thrift.Pyload;
+import org.pyload.android.openapi.api.PyLoadRestApi;
+import org.pyload.android.openapi.models.AccountInfo;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -25,17 +25,26 @@ import java.util.List;
 
 public class AccountDialog extends DialogFragment {
 
+    private List<AccountInfo> accountData;
+
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         final AccountAdapter adapter = new AccountAdapter(getActivity());
 
+        Runnable mSetData = new Runnable() {
+            @Override
+            public void run() {
+                adapter.setData(accountData);
+            }
+        };
+
         final pyLoadApp app = (pyLoadApp) getActivity().getApplication();
         GuiTask task = new GuiTask(new Runnable() {
             public void run() {
-                Pyload.Client client = app.getClient();
-                adapter.setData(client.getAccounts(false));
+                PyLoadRestApi client = app.getClient();
+                accountData = app.executeNetworkCall(client.apiGetAccountsGet(false));
             }
-        });
+        }, mSetData);
         app.addTask(task);
 
         ListView lv = new ListView(getActivity());
@@ -112,24 +121,24 @@ class AccountAdapter extends BaseAdapter {
 
         holder = (ViewHolder) view.getTag();
 
-        holder.type.setText(acc.type);
-        holder.name.setText(acc.login);
+        holder.type.setText(acc.getType());
+        holder.name.setText(acc.getLogin());
 
-        if (acc.valid)
+        if (acc.getValid())
             holder.valid.setText(R.string.valid);
         else
             holder.valid.setText(R.string.invalid);
 
-        if (acc.trafficleft < 0)
+        if (acc.getTrafficleft() < 0)
             holder.trafficleft.setText(R.string.unlimited);
         else
-            holder.trafficleft.setText(Utils.formatSize(acc.trafficleft));
+            holder.trafficleft.setText(Utils.formatSize(acc.getTrafficleft()));
 
-        if (acc.validuntil < 0)
+        if (acc.getValiduntil() < 0)
             holder.validuntil.setText(R.string.unlimited);
         else {
             Date date = new Date();
-            date.setTime(acc.validuntil * 1000);
+            date.setTime(acc.getValiduntil().longValue() * 1000);
             SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy");
             holder.validuntil.setText(formatter.format(date));
         }

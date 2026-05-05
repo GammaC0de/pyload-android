@@ -17,7 +17,7 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
-import org.pyload.android.client.module.FileChooser;
+import org.pyload.android.client.module.Utils;
 
 import java.util.regex.Matcher;
 
@@ -25,6 +25,8 @@ public class AddLinksActivity extends Activity {
 	
 	public static final int NEW_PACKAGE = 0;
 	private static final int PERMISSIONS_REQUEST_EXTERNAL_STORAGE = 1;
+
+	private static final int REQUEST_FILE_PICK = 1001;
 
 	private String filename = "uploaded_from_android.dlc";
 	
@@ -129,8 +131,11 @@ public class AddLinksActivity extends Activity {
 	}
 
 	private void browseForFile() {
-		Intent intent = new Intent().setClass(this, FileChooser.class);
-		startActivityForResult(intent, FileChooser.CHOOSE_FILE);
+		Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+		intent.addCategory(Intent.CATEGORY_OPENABLE);
+		intent.setType("*/*"); // All file types
+
+		startActivityForResult(intent, REQUEST_FILE_PICK);
 	}
 
 	@RequiresApi(api = Build.VERSION_CODES.M)
@@ -202,25 +207,16 @@ public class AddLinksActivity extends Activity {
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		switch (requestCode) {
-		case FileChooser.CHOOSE_FILE:
-			switch (resultCode) {
-			case RESULT_OK:
-
-				String path = data.getStringExtra("filepath");
-				filename = data.getStringExtra("filename");
-				EditText view = (EditText) findViewById(R.id.filename);
-				view.setText(path);
-				
-				break;
-
-			default:
-				break;
-			}
-			break;
-		default:
-			super.onActivityResult(requestCode, resultCode, data);
-		}
+        if (requestCode == REQUEST_FILE_PICK) {
+            if (resultCode == RESULT_OK) {
+                Uri uri = data.getData();
+                filename = Utils.getFileName(this, uri);
+                EditText view = (EditText) findViewById(R.id.filename);
+                view.setText(uri.toString());
+            }
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
 	}
 }
 

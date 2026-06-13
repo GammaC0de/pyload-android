@@ -24,7 +24,6 @@ import org.pyload.android.client.module.TaskQueue;
 import org.pyload.android.openapi.ApiClient;
 import org.pyload.android.openapi.api.PyLoadRestApi;
 import org.pyload.android.openapi.auth.ApiKeyAuth;
-import org.pyload.android.openapi.auth.HttpBasicAuth;
 import org.pyload.android.openapi.models.ServerStatus;
 
 import javax.net.ssl.*;
@@ -34,7 +33,7 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.security.KeyStore;
 import java.security.SecureRandom;
-import java.util.Map;
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 import retrofit2.Call;
@@ -45,7 +44,7 @@ public class pyLoadApp extends Application {
 
 	private PyLoadRestApi client;
 
-	// setted by main activity
+	// set by main activity
 	private TaskQueue taskQueue;
 	private Throwable lastException;
 	public SharedPreferences prefs;
@@ -60,7 +59,12 @@ public class pyLoadApp extends Application {
 	public void init(pyLoad main) {
 		this.main = main;
 
-        taskQueue = new TaskQueue(this, new Handler());
+		HashMap<Throwable, Runnable> map = new HashMap<Throwable, Runnable>();
+		map.put(new WrongLogin(), handleException);
+		map.put(new WrongServer(), handleException);
+		map.put(new RuntimeException(), handleException);
+
+        taskQueue = new TaskQueue(this, new Handler(), map);
 		startTaskQueue();
 	}
 
@@ -120,21 +124,21 @@ public class pyLoadApp extends Application {
 		apiClient.setAdapterBuilder(retrofit);
 
 		boolean authSuccessful;
-        try {
-            ApiKeyAuth apiKeyAuth = new ApiKeyAuth("header", "X-API-Key");
+		try {
+			ApiKeyAuth apiKeyAuth = new ApiKeyAuth("header", "X-API-Key");
 			apiKeyAuth.setApiKey(apiKey);
-            apiClient.addAuthorization("ApiKeyAuth", apiKeyAuth);
+			apiClient.addAuthorization("ApiKeyAuth", apiKeyAuth);
 
-            PyLoadRestApi pyLoadRestApi = apiClient.createService(PyLoadRestApi.class);
+			PyLoadRestApi pyLoadRestApi = apiClient.createService(PyLoadRestApi.class);
 
 			Response<ServerStatus> serverStatus = pyLoadRestApi.apiStatusServerGet().execute();
-            authSuccessful = serverStatus.isSuccessful();
+			authSuccessful = serverStatus.isSuccessful();
 			if (authSuccessful) {
 				client = pyLoadRestApi;
 			}
-        } catch (Exception e) {
+		} catch (Exception e) {
 			throw new RuntimeException(e);
-        }
+		}
 
 		return authSuccessful;
 	}
@@ -181,10 +185,8 @@ public class pyLoadApp extends Application {
 		}
 	}
 
-	public void addTask(GuiTask task) {
-		if (!task.hasCritical()) {
-			task.setCritical(handleException);
-		}
+	public void addTask(GuiTask task)
+	{
 		taskQueue.addTask(task);
 	}
 
@@ -193,7 +195,6 @@ public class pyLoadApp extends Application {
 	}
 
 	final public Runnable handleException = new Runnable() {
-
 		public void run() {
 			onException();
 		}
@@ -208,25 +209,42 @@ public class pyLoadApp extends Application {
 			errorMessage = getString(R.string.bad_login);
 		else if (lastException instanceof WrongServer)
 			errorMessage = String.format(getString(R.string.old_server), clientVersion[clientVersion.length - 1]);
-		else {
-			Throwable exception = lastException.getCause();
-
-			if (exception instanceof SSLHandshakeException)
+		else if (lastException instanceof RuntimeException) {
+			Throwable tr = findException(lastException);
+			if (tr instanceof SSLHandshakeException)
 				errorMessage = getString(R.string.certificate_error);
-			else if (exception instanceof SocketTimeoutException)
+			else if (tr instanceof SocketTimeoutException)
 				errorMessage = getString(R.string.connect_timeout);
-			else if (exception instanceof ConnectException)
+			else if (tr instanceof ConnectException)
 				errorMessage = getString(R.string.connect_error);
-			else if (exception instanceof SocketException)
+			else if (tr instanceof SocketException)
 				errorMessage = getString(R.string.socket_error);
 			else
-				errorMessage = getString(R.string.no_connection) + " " + lastException.getMessage();
-		}
+				errorMessage = getString(R.string.no_connection) + " " + tr.getMessage();
+		} else if (lastException != null)
+			errorMessage = lastException.getMessage();
+		else
+			errorMessage = getString(R.string.error);
 
-		Toast t = Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT);
+		Toast t = Toast.makeText(this, errorMessage, Toast.LENGTH_LONG);
 		t.show();
 
 		setProgress(false);
+	}
+
+	/**
+	 * Retrieves first root exception on stack of several RuntimeException.
+	 * @return the first exception not a RuntimeException or the last RuntimeException
+	 */
+	private Throwable findException(Throwable e) {
+		// will not terminate when cycles occur, hopefully nobody cycle exception causes
+		while (e instanceof RuntimeException) {
+			if (e.getCause() == null) break;
+			if (e.getCause() == e) break; // just to avoid loop
+			e = e.getCause();
+		}
+
+		return e;
 	}
 
 	final public Runnable handleSuccess = new Runnable() {
